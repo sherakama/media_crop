@@ -12,7 +12,7 @@
       success: function (data) {
         var mciid = '%7BMCIID%7D';
         var img = $('#' + id);
-        if (img.length == 0) {
+        if (img.length === 0) {
           $('iframe').each(function () {
             var iimg = $(this).contents().find('#' + id);
             if (iimg.length > 0) {
@@ -26,6 +26,7 @@
         img.attr('src', src.replace(mciid, data));
         img.attr('data-cke-saved-src', dataCkeSavedSrc.replace(mciid, data));
         img.attr('class', cls.replace(mciid, data));
+        img.addClass('mciid-' + data);
       },
       error: function (jqXHR, textStatus, errorThrown) {
         if (parent.console && parent.console.log) {
