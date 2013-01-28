@@ -1088,6 +1088,7 @@ function theme_media_crop_image($variables) {
     'attributes' => array(
       'class' => implode(" ", $variables['attributes']['class']),
       'id' => $variables['attributes']['id'],
+      'style' => $variables['attributes']['style'],
     ),
   );
 
