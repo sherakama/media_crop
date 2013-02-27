@@ -1,8 +1,8 @@
 (function ($) {
-  CKEDITOR.plugins.add('media_crop_ckeditor', {
+  CKEDITOR.plugins.add('stanford_media_crop_ckeditor', {
     init: function (editor, pluginPath) {
 
-      editor.addCommand('mediaCropEditInstance',{
+      editor.addCommand('stanfordMediaCropEditInstance',{
         exec: function (editor){
           var sel = editor.getSelection();
           var element = sel.getStartElement();
@@ -34,10 +34,10 @@
       // Create menu item.
       if (editor.addMenuItems) {
         editor.addMenuItems({
-          mediaCropEditInstance: {
+          stanfordMediaCropEditInstance: {
             label: 'Image Crop Settings',
-            command: 'mediaCropEditInstance',
-            group: 'mediaCrop',  //have to be added in config
+            command: 'stanfordMediaCropEditInstance',
+            group: 'stanfordMediaCrop',  //have to be added in config
             icon: this.path + 'plugin.png'
           }
         });
@@ -47,7 +47,7 @@
       if (editor.contextMenu) {
         //function to be run when context menu is displayed
         editor.contextMenu.addListener(function (element, selection) {
-          if (element && element.is('img') && element.hasClass('img__view_mode__media_crop') && (element.getAttribute('src') !== '/broken.jpg')) {
+          if (element && element.is('img') && element.hasClass('img__view_mode__stanford_media_crop') && (element.getAttribute('src') !== '/broken.jpg')) {
             return { mediaCropEditInstance: CKEDITOR.TRISTATE_OFF };
           }
           return null;
@@ -58,8 +58,8 @@
 
   var mediaBrowserOnLoad = Drupal.media.popups.mediaStyleSelector.mediaBrowserOnLoad;
   Drupal.media.popups.mediaStyleSelector.mediaBrowserOnLoad = function (e) {
-    if (document.getElementById('mediaStyleSelector').contentWindow.Drupal.media_crop.actions.init && e.data.crop) {
-      document.getElementById('mediaStyleSelector').contentWindow.Drupal.media_crop.actions.init(e.data);
+    if (document.getElementById('mediaStyleSelector').contentWindow.Drupal.stanford_media_crop.actions.init && e.data.crop) {
+      document.getElementById('mediaStyleSelector').contentWindow.Drupal.stanford_media_crop.actions.init(e.data);
     }
   };
 })(jQuery);

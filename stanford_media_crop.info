@@ -1,0 +1,13 @@
+name = Stanford Media Crop
+description = Adds image cropping to media embed, Stanford SWS specific and does not require libraries dependencies.
+core = 7.x
+dependencies[] = media
+dependencies[] = wysiwyg
+; dependencies[] = libraries
+package = Stanford
+
+; Information added by drupal.org packaging script on 2012-08-23
+version = "7.x-1.4+2-dev"
+core = "7.x"
+project = "stanford_media_crop"
+datestamp = "1345682162"
