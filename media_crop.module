@@ -1081,14 +1081,14 @@ function theme_media_crop_image($variables) {
 
   $image_variables = array(
     'path' => _media_crop_get_path($mciid, $file->uri),
-    'alt' => t($variables['attributes']['alt']),
-    'title' => t($variables['attributes']['title']),
-    'width' => $variables['attributes']['width'],
-    'height' => $variables['attributes']['height'],
+    'alt' => isset($variables['attributes']['alt']) ? t($variables['attributes']['alt']) : '',
+    'title' => isset($variables['attributes']['title']) ? t($variables['attributes']['title']) : '',
+    'width' => isset($variables['attributes']['width']) ? $variables['attributes']['width'] : '',
+    'height' => isset($variables['attributes']['height']) ? $variables['attributes']['height'] : '',
     'attributes' => array(
-      'class' => implode(" ", $variables['attributes']['class']),
-      'id' => $variables['attributes']['id'],
-      'style' => $variables['attributes']['style'],
+      'class' => isset($variables['attributes']['class']) ? implode(" ", $variables['attributes']['class']) : '',
+      'id' => isset($variables['attributes']['id']) ? $variables['attributes']['id'] : '',
+      'style' => isset($variables['attributes']['style']) ? $variables['attributes']['style'] : '',
     ),
   );
 
