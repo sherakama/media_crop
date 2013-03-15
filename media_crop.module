@@ -1081,14 +1081,14 @@ function theme_media_crop_image($variables) {
 
   $image_variables = array(
     'path' => _media_crop_get_path($mciid, $file->uri),
-    'alt' => t($variables['attributes']['alt']),
-    'title' => t($variables['attributes']['title']),
-    'width' => $variables['attributes']['width'],
-    'height' => $variables['attributes']['height'],
+    'alt' => isset($variables['attributes']['alt']) ? t($variables['attributes']['alt']) : '',
+    'title' => isset($variables['attributes']['title']) ? t($variables['attributes']['title']) : '',
+    'width' => isset($variables['attributes']['width']) ? $variables['attributes']['width'] : '',
+    'height' => isset($variables['attributes']['height']) ? $variables['attributes']['height'] : '',
     'attributes' => array(
-      'class' => implode(" ", $variables['attributes']['class']),
-      'id' => $variables['attributes']['id'],
-      'style' => $variables['attributes']['style'],
+      'class' => isset($variables['attributes']['class']) ? implode(" ", $variables['attributes']['class']) : '',
+      'id' => isset($variables['attributes']['id']) ? $variables['attributes']['id'] : '',
+      'style' => isset($variables['attributes']['style']) ? $variables['attributes']['style'] : '',
     ),
   );
 
@@ -1128,10 +1128,29 @@ function media_crop_pre_render_text_format($element) {
   }
 
   $path = drupal_get_path('module', 'media_crop');
-  drupal_add_js($path . '/js/media_crop.image_replace.js');
+  drupal_add_js($path . '/js/media_crop.image_replace.js', array('scope' => 'footer'));
 
   return $element;
 }
+
+/**
+ * Implements hook_ckeditor_plugin().
+ */
+function media_crop_ckeditor_plugin() {
+
+  return array(
+    'media_crop_ckeditorz' => array(
+      // Name of the plugin used to write it.
+      'name' => 'media_crop_ckeditorz',
+      // Description of the plugin - it would be displayed in the plugins management section of profile settings.
+      'desc' => t('Plugin for manual cropping of media embedded images.'),
+      // The full path to the CKEditor plugins directory, with the trailing slash.
+      'path' => drupal_get_path('module', 'media_crop') . '/plugins/media_crop_ckeditorz/',
+    )
+  );
+
+}
+
 /**
  * Implements hook_wysiwyg_plugin().
  */
