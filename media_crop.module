@@ -1028,6 +1028,7 @@ function _media_crop_extract_rotation_and_crop(array $effects, $image_width, $im
  * Implements hook_media_token_to_markup_alter().
  */
 function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings) {
+
   if ($tag_info['view_mode'] === 'media_crop' && $tag_info['file']->type === 'image') {
 
     $mciid = NULL;
@@ -1047,23 +1048,74 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
       $element['#file'] = $element['content']['file']['#file'];
     }
 
-    if (!isset($element['#attributes']) && is_array($tag_info['attributes'])) {
-      $element['#attributes'] = $tag_info['attributes'];
-      $element['#height'] = $tag_info['height'];
-      $element['#width'] = $tag_info['width'];
-      $element['#alt'] = $tag_info['alt'];
-      $element['#title'] = $tag_info['title'];
+    $file = $element['#file'];
+    $path = _media_crop_get_path($mciid, $file->uri);
+    $file->uri = $path;
+
+    if (module_exists('file_entity')) {
+      file_entity_image_dimensions($file, TRUE);
+    }
+    else {
+      $image_info = image_get_info($file->uri);
+      if ($image_info) {
+        $file->image_dimensions = array(
+          'width' => $image_info['width'],
+          'height' => $image_info['height'],
+        );
+        db_merge('image_dimensions')
+          ->key(array('fid' => $file->fid))
+          ->fields(array(
+            'width' => $file->image_dimensions['width'],
+            'height' => $file->image_dimensions['height'],
+          ))
+          ->execute();
+      }
+      else {
+        // Fallback to NULL values.
+        $file->image_dimensions = array(
+          'width' => NULL,
+          'height' => NULL,
+        );
+      }
+    }
+
+    // These seem to be for the front end view.
+    $element['content']['file']['#path'] = $path;
+    $element['content']['#width'] = $file->image_dimensions['width'];
+    $element['content']['#height'] = $file->image_dimensions['height'];
+
+    // These seem to be for the wysiwyg editor.
+    $element['#path'] = $path;
+    $element['#width'] = $file->image_dimensions['width'];
+    $element['#height'] = $file->image_dimensions['height'];
+
+    // These seem to not differ.
+    $element['#file'] = $file;
+
+    // If we have a parent wrapper tag we need to shift the style attributes
+    // from the entity to the parent wrapper tag to support things like
+    // floating left or right.
+
+    if (!empty($element['content']['#prefix'])) {
+      if ($element['content']['file']['#attributes']['style']) {
+         $element['content']['#prefix'] = str_replace(">", " style=\"" . $element['content']['file']['#attributes']['style'] . "\">", $element['content']['#prefix']);
+        unset($element['content']['file']['#attributes']['style']);
+      }
     }
 
 
-    $element['#media_crop'] = array();
-    $element['#media_crop']['media_crop_instance'] = $mciid;
-    $element['#theme'] = 'media_crop_image';
+    // If we are in the wyswiyg editor we need to add the additional fields
+    // to the markup as it only renders the image 'as is'.
+    if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
+      $element["#theme"] = "media_crop_image";
+    }
+
   }
+
 }
 
 /**
- * Wildcald loader, for loading a media crop instance object.
+ * Wildcard loader, for loading a media crop instance object.
  */
 function media_crop_instance_load($mciid) {
   return is_numeric($mciid) ?
@@ -1076,24 +1128,16 @@ function media_crop_instance_load($mciid) {
  * For rendering the media (image), with applied crop/rotation settings.
  */
 function theme_media_crop_image($variables) {
+
   $file = $variables['file'];
-  $mciid = $variables['media_crop']['media_crop_instance'];
+  $build = file_view($file, 'media_crop');
 
-  $image_variables = array(
-    'path' => _media_crop_get_path($mciid, $file->uri),
-    'alt' => isset($variables['attributes']['alt']) ? t($variables['attributes']['alt']) : '',
-    'title' => isset($variables['attributes']['title']) ? t($variables['attributes']['title']) : '',
-    'width' => isset($variables['attributes']['width']) ? $variables['attributes']['width'] : '',
-    'height' => isset($variables['attributes']['height']) ? $variables['attributes']['height'] : '',
-    'attributes' => array(
-      'class' => isset($variables['attributes']['class']) ? implode(" ", $variables['attributes']['class']) : '',
-      'id' => isset($variables['attributes']['id']) ? $variables['attributes']['id'] : '',
-      'style' => isset($variables['attributes']['style']) ? $variables['attributes']['style'] : '',
-    ),
-  );
+  $image = drupal_render($build);
 
-  return theme('image', $image_variables);
+  return $image;
 }
+
+
 
 /**
  * Implements hook_element_info_alter().
@@ -1115,6 +1159,7 @@ function media_crop_entity_info_alter(&$entity_info) {
  * Process function for adding necessary js to the editor.
  */
 function media_crop_pre_render_text_format($element) {
+
   // filter_process_format() copies properties to the expanded 'value' child
   // element. Skip this text format widget, if it contains no 'format' or when
   // the current user does not have access to edit the value.

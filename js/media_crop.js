@@ -776,4 +776,6 @@
           .after(text);
       });
   };
+
+
 })(jQuery);
