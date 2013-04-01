@@ -29,10 +29,11 @@
         var src = (img.attr('src') || '');
         var dataCkeSavedSrc = (img.attr('data-cke-saved-src') || '');
         var cls = (img.attr('class') || '');
+        var info = {"fid": fid,"view_mode":"media_crop","type":"media"};
 
         img.attr('src', src.replace(mciid, data));
         img.attr('data-cke-saved-src', dataCkeSavedSrc.replace(mciid, data));
-        img.attr('class', cls.replace(mciid, data));
+        img.attr('data-file_info', encodeURI(JSON.stringify(info)));
         img.addClass('mciid-' + data);
 
       },

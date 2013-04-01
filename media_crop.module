@@ -123,6 +123,7 @@ function media_crop_media_format_form_prepare_alter(&$form, $form_state, $file) 
         'path' => _media_crop_get_path('{MCIID}', $file->uri),
         'attributes' => array(
           'id' => 'ID_PLACEHOLDER',
+          'class' => 'media-element',
         ),
       )),
     );
@@ -1096,13 +1097,20 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
     // from the entity to the parent wrapper tag to support things like
     // floating left or right.
 
+    // WYSIWYG MODULE.
     if (!empty($element['content']['#prefix'])) {
       if ($element['content']['file']['#attributes']['style']) {
-         $element['content']['#prefix'] = str_replace(">", " style=\"" . $element['content']['file']['#attributes']['style'] . "\">", $element['content']['#prefix']);
+        $element['content']['#prefix'] = str_replace(">", " style=\"" . $element['content']['file']['#attributes']['style'] . "\">", $element['content']['#prefix']);
         unset($element['content']['file']['#attributes']['style']);
       }
     }
 
+    // CKEDITOR MODULE SUPPORT.
+    if (!empty($element['content']['file']['#attributes']['style']) && !isset($element['content']['#prefix'])) {
+      $element['content']['#prefix'] = "<div style=\"" . $element['content']['file']['#attributes']['style'] . "\" >";
+      $element['content']['#suffix'] = "</div>";
+      unset($element['content']['file']['#attributes']['style']);
+    }
 
     // If we are in the wyswiyg editor we need to add the additional fields
     // to the markup as it only renders the image 'as is'.
