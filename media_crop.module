@@ -1050,46 +1050,37 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
     }
 
     $file = $element['#file'];
+
     $path = _media_crop_get_path($mciid, $file->uri);
     $file->uri = $path;
 
-    if (module_exists('file_entity')) {
-      file_entity_image_dimensions($file, TRUE);
+    $image_info = image_get_info($path);
+
+    if ($image_info) {
+      $file->image_dimensions = array(
+        'width' => $image_info['width'],
+        'height' => $image_info['height'],
+      );
     }
     else {
-      $image_info = image_get_info($file->uri);
-      if ($image_info) {
-        $file->image_dimensions = array(
-          'width' => $image_info['width'],
-          'height' => $image_info['height'],
-        );
-        db_merge('image_dimensions')
-          ->key(array('fid' => $file->fid))
-          ->fields(array(
-            'width' => $file->image_dimensions['width'],
-            'height' => $file->image_dimensions['height'],
-          ))
-          ->execute();
-      }
-      else {
-        // Fallback to NULL values.
-        $file->image_dimensions = array(
-          'width' => NULL,
-          'height' => NULL,
-        );
-      }
+      // Fallback to NULL values.
+      $file->image_dimensions = array(
+        'width' => NULL,
+        'height' => NULL,
+      );
     }
 
     // These seem to be for the front end view.
     $element['content']['file']['#path'] = $path;
-    $element['content']['#width'] = $file->image_dimensions['width'];
-    $element['content']['#height'] = $file->image_dimensions['height'];
+    $element['content']['file']['#width'] = $file->image_dimensions['width'];
+    $element['content']['file']['#height'] = $file->image_dimensions['height'];
 
     // These seem to be for the wysiwyg editor.
-    $element['#path'] = $path;
-    $element['#width'] = $file->image_dimensions['width'];
-    $element['#height'] = $file->image_dimensions['height'];
-
+    if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
+      $element['#path'] = $path;
+      $element['#width'] = $file->image_dimensions['width'];
+      $element['#height'] = $file->image_dimensions['height'];
+    }
     // These seem to not differ.
     $element['#file'] = $file;
 
@@ -1098,15 +1089,30 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
     // floating left or right.
 
     // WYSIWYG MODULE.
-    if (!empty($element['content']['#prefix'])) {
-      if ($element['content']['file']['#attributes']['style']) {
-        $element['content']['#prefix'] = str_replace(">", " style=\"" . $element['content']['file']['#attributes']['style'] . "\">", $element['content']['#prefix']);
-        unset($element['content']['file']['#attributes']['style']);
+    if (module_exists('wysiwyg') && !empty($element['content']['#type']) && $element['content']['#type'] == "container") {
+      if ($tag_info['attributes']) {
+
+        foreach ($tag_info['attributes'] as $k => $v) {
+
+          if (is_array($v)) {
+            continue;
+          }
+
+          if ($k == "align") {
+            $element['content']['#attributes']['class'][] = 'media-image-' . $v;
+          }
+          else {
+            $element['content']['#attributes'][$k] = $v;
+          }
+
+          unset($element['content']['file']['#attributes']);
+        }
+
       }
     }
 
     // CKEDITOR MODULE SUPPORT.
-    if (!empty($element['content']['file']['#attributes']['style']) && !isset($element['content']['#prefix'])) {
+    if (module_exists('ckeditor') && !empty($element['content']['file']['#attributes']['style']) && !isset($element['content']['#prefix'])) {
       $element['content']['#prefix'] = "<div style=\"" . $element['content']['file']['#attributes']['style'] . "\" >";
       $element['content']['#suffix'] = "</div>";
       unset($element['content']['file']['#attributes']['style']);
@@ -1114,11 +1120,14 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
 
     // If we are in the wyswiyg editor we need to add the additional fields
     // to the markup as it only renders the image 'as is'.
+
+    // @TODO: FIX This so that tags render as they do in the front end.
     if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
-      $element["#theme"] = "media_crop_image";
+      // $element["#theme"] = "media_crop_image";
     }
 
   }
+
 
 }
 
@@ -1155,6 +1164,7 @@ function theme_media_crop_image($variables) {
 
   $content = drupal_render($file->content);
   return $content;
+
 }
 
 
