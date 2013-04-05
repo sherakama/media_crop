@@ -1123,7 +1123,7 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
 
     // @TODO: FIX This so that tags render as they do in the front end.
     if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
-      // $element["#theme"] = "media_crop_image";
+      $element["#theme"] = "media_crop_image";
     }
 
   }
@@ -1161,6 +1161,8 @@ function theme_media_crop_image($variables) {
     $file->content['#prefix'] .= ">";
     $file->content['#suffix'] = "</div>";
   }
+
+  $file->content['file']['#prefix'] = "<span class=\"do-not-select\">&nbsp;</span>";
 
   $content = drupal_render($file->content);
   return $content;
