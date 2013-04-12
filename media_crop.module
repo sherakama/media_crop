@@ -1162,8 +1162,6 @@ function theme_media_crop_image($variables) {
     $file->content['#suffix'] = "</div>";
   }
 
-  $file->content['file']['#prefix'] = "<span class=\"do-not-select\">&nbsp;</span>";
-
   $content = drupal_render($file->content);
   return $content;
 
