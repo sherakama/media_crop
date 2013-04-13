@@ -583,7 +583,19 @@ function media_crop_create_instance($style_name, $file, $token) {
     $mciid = $instance->mciid;
   }
 
-  drupal_json_output($mciid);
+  $data = array(
+    'mciid' => $mciid,
+    'image_style_name' => $style_name,
+    'angle' => $angle,
+    'crop_x' => $crop_x_coordinate,
+    'crop_y' => $crop_y_coordinate,
+    'crop_w' => $crop_width,
+    'crop_h' => $crop_height,
+    'crop_scale_w' => $scale_width,
+    'crop_scale_h' => $scale_height,
+  );
+
+  drupal_json_output($data);
 
   return NULL;
 }
@@ -1093,18 +1105,15 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
       if ($tag_info['attributes']) {
 
         foreach ($tag_info['attributes'] as $k => $v) {
-
           if (is_array($v)) {
             continue;
           }
-
           if ($k == "align") {
             $element['content']['#attributes']['class'][] = 'media-image-' . $v;
           }
           else {
             $element['content']['#attributes'][$k] = $v;
           }
-
           unset($element['content']['file']['#attributes']);
         }
 
@@ -1121,7 +1130,6 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
     // If we are in the wyswiyg editor we need to add the additional fields
     // to the markup as it only renders the image 'as is'.
 
-    // @TODO: FIX This so that tags render as they do in the front end.
     if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
       $element["#theme"] = "media_crop_image";
     }

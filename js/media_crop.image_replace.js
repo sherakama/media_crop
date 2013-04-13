@@ -29,12 +29,17 @@
         var src = (img.attr('src') || '');
         var dataCkeSavedSrc = (img.attr('data-cke-saved-src') || '');
         var cls = (img.attr('class') || '');
-        var info = {"fid": fid,"view_mode":"media_crop","type":"media"};
+        var info = {"fid" : fid, "view_mode" : "media_crop", "type" : "media"};
 
-        img.attr('src', src.replace(mciid, data));
-        img.attr('data-cke-saved-src', dataCkeSavedSrc.replace(mciid, data));
+        // Append the info we get back from media crop.
+        jQuery.each(data, function(i, v) {
+          info[i] = v;
+        });
+
+        img.attr('src', src.replace(mciid, data.mciid));
+        img.attr('data-cke-saved-src', dataCkeSavedSrc.replace(mciid, data.mciid));
         img.attr('data-file_info', encodeURI(JSON.stringify(info)));
-        img.addClass('mciid-' + data);
+        img.addClass('mciid-' + data.mciid);
 
       },
 
