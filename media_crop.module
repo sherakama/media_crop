@@ -873,7 +873,16 @@ function _media_crop_apply_scale($scale_width, $scale_height, $image) {
 function _media_crop_get_path($mciid, $uri) {
   $scheme = file_uri_scheme($uri);
   if ($scheme) {
-    $path = file_uri_target($uri);
+
+    // No need to change the path on remote files.
+    if (module_exists('remote_stream_wrapper') && ($scheme == "http" || $scheme == "https")) {
+      $remote_path = "public://media_crop/{$mciid}/public/" . file_uri_target($uri);
+      return $remote_path;
+    }
+    else {
+      $path = file_uri_target($uri);
+    }
+
   }
   else {
     $path = $uri;
