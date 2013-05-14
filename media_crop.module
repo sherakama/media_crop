@@ -622,7 +622,7 @@ exit();
  */
 function media_crop_get_image($media_crop_instance) {
 
-  var_dump('GET IMAGE');
+  var_dump($media_crop_instance);
   exit();
 
   if (!$media_crop_instance) {
