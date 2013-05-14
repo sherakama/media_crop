@@ -770,12 +770,10 @@ function media_crop_create_derivative($crop_object) {
   var_dump(image_gd_get_info($image));
   var_dump('//////////////////////////////////////////////// \n');
 
-  _media_crop_apply_rotation($angle, $image);
-  _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
-  _media_crop_apply_image_style($style, $image);
-  _media_crop_apply_scale($scale_width, $scale_height, $image);
-
-  //image_gd_crop($image, $crop_x_coordinate, $crop_y_coordinate, $crop_width, $crop_height);
+  $image = _media_crop_apply_rotation($angle, $image);
+  $image = _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
+  $image = _media_crop_apply_image_style($style, $image);
+  $image = _media_crop_apply_scale($scale_width, $scale_height, $image);
 
   var_dump("//////////////////////////////////////////////////// \n");
   var_dump(image_gd_get_info($image));
@@ -819,7 +817,7 @@ function media_crop_create_derivative($crop_object) {
  * @param object $image
  *   Image object to modify.
  */
-function _media_crop_apply_rotation($angle, &$image) {
+function _media_crop_apply_rotation($angle, $image) {
   if ($angle) {
     image_effect_apply($image, array(
       'name' => 'image_rotate',
@@ -829,6 +827,7 @@ function _media_crop_apply_rotation($angle, &$image) {
       ),
     ) + image_effect_definition_load('image_rotate'));
   }
+  return $image;
 }
 
 /**
@@ -845,7 +844,7 @@ function _media_crop_apply_rotation($angle, &$image) {
  * @param object $image
  *   Image object to modify.
  */
-function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, &$image) {
+function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image) {
   if ($crop_width && $crop_height) {
     $image_width = $image->info['width'];
     $image_height = $image->info['height'];
@@ -858,6 +857,7 @@ function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $
       ),
     ) + image_effect_definition_load('image_crop'));
   }
+  return $image;
 }
 
 /**
@@ -868,7 +868,7 @@ function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $
  * @param object $image
  *   Image object to modify.
  */
-function _media_crop_apply_image_style($style, &$image) {
+function _media_crop_apply_image_style($style, $image) {
   if (!empty($style) && $style !== NULL) {
     $safe = _media_crop_effects_are_compatible($style['effects']);
 
@@ -878,6 +878,7 @@ function _media_crop_apply_image_style($style, &$image) {
       }
     }
   }
+  return $image;
 }
 
 /**
@@ -896,6 +897,7 @@ function _media_crop_apply_scale($scale_width, $scale_height, &$image) {
     $scale_height = (int) $scale_height === 0 ? NULL : (int) $scale_height;
     image_scale($image, $scale_width, $scale_height, TRUE);
   }
+  return $image;
 }
 
 /**
