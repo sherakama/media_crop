@@ -657,10 +657,6 @@ function media_crop_get_image($media_crop_instance) {
 
   $derivative_uri = _media_crop_get_path($media_crop_instance->mciid, $file->uri);
 
-  var_dump($derivative_uri);
-  exit();
-
-
   if (($scheme = file_uri_scheme($derivative_uri)) == 'private') {
     if (file_exists($derivative_uri)) {
       file_download($scheme, file_uri_target($derivative_uri));
@@ -689,6 +685,9 @@ function media_crop_get_image($media_crop_instance) {
       drupal_exit();
     }
   }
+
+  var_dump($lock);
+  exit();
 
   $crop_object = (object) array(
     'uri' => $file->uri,
