@@ -772,7 +772,7 @@ function media_crop_create_derivative($crop_object) {
   _media_crop_apply_image_style($style, $image);
   _media_crop_apply_scale($scale_width, $scale_height, $image);
 
-var_dump($image['resource']);
+var_dump($image->resource);
 
    if ($return = image_gd_save($image, $destination)) {
 
