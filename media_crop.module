@@ -776,7 +776,7 @@ function media_crop_create_derivative($crop_object) {
 
    if ($return = image_toolkit_invoke('save', $image, array($destination))) {
 
-    dpm($return);
+    var_dump($return);
 
     // Clear the cached file size and refresh the image information.
     clearstatcache();
@@ -784,7 +784,7 @@ function media_crop_create_derivative($crop_object) {
 
   }
 
-  dpm($image);
+  var_dump($image);
   exit('saved');
 
 
