@@ -855,7 +855,10 @@ function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $
       'data' => array(
         'width' => (int) _media_crop_scale($image_width, $image_height, $crop_width),
         'height' => (int) _media_crop_scale($image_width, $image_height, $crop_height),
-        'anchor' => ((int) _media_crop_scale($image_width, $image_height, $crop_x_coordinate)) . '-' . ((int) _media_crop_scale($image_width, $image_height, $crop_y_coordinate)),
+        'anchor' =>
+            ((int) _media_crop_scale($image_width, $image_height, $crop_x_coordinate))
+              . '-' .
+            ((int) _media_crop_scale($image_width, $image_height, $crop_y_coordinate)),
       ),
     ) + image_effect_definition_load('image_crop');
 
@@ -864,7 +867,7 @@ function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $
   }
 
   print "//////////////////////////////////////////////////////// <br />";
-  var_dump($effect);
+  var_dump($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate);
   print "////////////////////////////////////////////////////////  <br />";
 
   return $image;
