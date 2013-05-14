@@ -768,8 +768,7 @@ function media_crop_create_derivative($crop_object) {
   }
 
 
-  var_dump($uri);
-  var_dump($directory);
+  var_dump($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
   exit('on deriv');
 
   _media_crop_apply_rotation($angle, $image);
