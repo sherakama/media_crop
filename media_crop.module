@@ -874,6 +874,9 @@ function _media_crop_apply_scale($scale_width, $scale_height, $image) {
  */
 function _media_crop_get_path($mciid, $uri) {
   $scheme = file_uri_scheme($uri);
+
+  dpm($scheme);
+
   if ($scheme) {
 
     // No need to change the path on remote files.
@@ -883,6 +886,7 @@ function _media_crop_get_path($mciid, $uri) {
     }
     else {
       $path = file_uri_target($uri);
+      dpm($path);
     }
 
   }
@@ -890,6 +894,8 @@ function _media_crop_get_path($mciid, $uri) {
     $path = $uri;
     $scheme = file_default_scheme();
   }
+
+  dpm($path);
 
   return $scheme . "://media_crop/{$mciid}/{$scheme}/{$path}";
 }
