@@ -965,31 +965,20 @@ function _media_crop_get_path($mciid, $uri) {
  */
 function _media_crop_scale($image_width, $image_height, $val, $invert = FALSE) {
   static $precision = 4096;
-  $cache = &drupal_static(__FUNCTION__, array());
 
+  $cache = &drupal_static(__FUNCTION__, array());
   $cache_index = "{$image_width}x{$image_height}";
+
   if (!isset($cache[$cache_index])) {
-    $cache[$cache_index] = function_exists('bcdiv') ?
-      bcdiv(350, max($image_width, $image_height), $precision) :
-      350 / max($image_width, $image_height);
+    $cache[$cache_index] = function_exists('bcdiv') ? bcdiv(350, max($image_width, $image_height), $precision) : 350 / max($image_width, $image_height);
   }
 
   $ret = $invert ?
-    (function_exists('bcmul') ?
-      bcmul($val, $cache[$cache_index], $precision) :
-      $cache[$cache_index] * $val) :
-    (function_exists('bcdiv') ?
-      bcdiv($val, $cache[$cache_index], $precision) :
-      $cache[$cache_index] / $val);
+    (function_exists('bcmul') ? bcmul($val, $cache[$cache_index], $precision) : $cache[$cache_index] * $val) :
+    (function_exists('bcdiv') ? bcdiv($val, $cache[$cache_index], $precision) : $cache[$cache_index] / $val);
 
-    phpinfo();
-    exit();
+    var_dump($ret);
 
-    var_dump(function_exists('bcmul'));
-    var_dump(function_exists('bcdiv'));
-
-
-  var_dump($ret);
   return $ret;
 }
 
