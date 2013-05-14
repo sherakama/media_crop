@@ -767,14 +767,13 @@ function media_crop_create_derivative($crop_object) {
     return FALSE;
   }
 
-
-  var_dump($angle, $image);
-  exit('on deriv');
-
   _media_crop_apply_rotation($angle, $image);
   _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
   _media_crop_apply_image_style($style, $image);
   _media_crop_apply_scale($scale_width, $scale_height, $image);
+
+  var_dump($image);
+  exit('on deriv');
 
   if (!image_save($image, $destination)) {
     if (file_exists($destination)) {
