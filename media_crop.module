@@ -110,7 +110,8 @@ function media_crop_media_format_form_prepare_alter(&$form, $form_state, $file) 
   }
 
   // Alter only if file is not remote and is of type image.
-  if (!_media_crop_is_file_remote($file) && $file->type === 'image') {
+  // if (!_media_crop_is_file_remote($file) && $file->type === 'image') {
+  if ($file->type === 'image') {
     $form['token'] = array(
       '#type' => 'hidden',
       '#value' => drupal_get_token(MEDIA_CROP_TOKEN_VALUE),
@@ -592,6 +593,7 @@ function media_crop_create_instance($style_name, $file, $token) {
     'crop_h' => $crop_height,
     'crop_scale_w' => $scale_width,
     'crop_scale_h' => $scale_height,
+    'image_dimensions' => $file->image_dimensions,
   );
 
   drupal_json_output($data);
@@ -629,15 +631,16 @@ function media_crop_get_image($media_crop_instance) {
   $scale_width = (int) $media_crop_instance->crop_scale_w;
   $scale_height = (int) $media_crop_instance->crop_scale_h;
 
-  $args = func_get_args();
-  array_shift($args);
-  $req_uri = implode('/', $args);
-  $orig_uri = str_replace('://', '/', $file->uri);
-  if ($req_uri != $orig_uri) {
-    watchdog('media_crop', 'Request URI not equals to original URI.');
-    drupal_access_denied();
-  }
-  unset($args);
+  // $args = func_get_args();
+  // array_shift($args);
+  // $req_uri = implode('/', $args);
+  // $req_uri = $file->uri;
+  // $orig_uri = str_replace('://', '/', $file->uri);
+  // if ($req_uri != $orig_uri) {
+  //   watchdog('media_crop', 'Request URI not equals to original URI.');
+  //   drupal_access_denied();
+  // }
+  // unset($args);
 
   $style = image_style_load($style_name);
   if (!$style) {
@@ -872,7 +875,16 @@ function _media_crop_apply_scale($scale_width, $scale_height, $image) {
 function _media_crop_get_path($mciid, $uri) {
   $scheme = file_uri_scheme($uri);
   if ($scheme) {
-    $path = file_uri_target($uri);
+
+    // No need to change the path on remote files.
+    if (module_exists('remote_stream_wrapper') && ($scheme == "http" || $scheme == "https")) {
+      $remote_path = "public://media_crop/{$mciid}/public/" . file_uri_target($uri);
+      return $remote_path;
+    }
+    else {
+      $path = file_uri_target($uri);
+    }
+
   }
   else {
     $path = $uri;
