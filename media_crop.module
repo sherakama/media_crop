@@ -766,16 +766,7 @@ function media_crop_create_derivative($crop_object) {
   $image = _media_crop_apply_image_style($style, $image);
   $image = _media_crop_apply_scale($scale_width, $scale_height, $image);
 
-   if ($return = image_gd_save($image, $destination)) {
-
-    // Clear the cached file size and refresh the image information.
-    clearstatcache();
-    $image->info = image_get_info($destination, $image->toolkit);
-
-  }
-
   if (!image_save($image, $destination)) {
-
     if (file_exists($destination)) {
       watchdog('media_crop', 'Cached image file %destination already exists. There may be an issue with your rewrite configuration.', array('%destination' => $destination), WATCHDOG_ERROR);
     }
