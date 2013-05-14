@@ -686,7 +686,8 @@ function media_crop_get_image($media_crop_instance) {
     }
   }
 
-  var_dump($lock);
+  var_dump($derivative_uri);
+  var_dump(file_exists($derivative_uri));
   exit();
 
   $crop_object = (object) array(
