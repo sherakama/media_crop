@@ -686,10 +686,6 @@ function media_crop_get_image($media_crop_instance) {
     }
   }
 
-  var_dump($lock_acquired);
-  var_dump(file_exists($derivative_uri));
-  exit();
-
   $crop_object = (object) array(
     'uri' => $file->uri,
     'angle' => $angle,
@@ -702,6 +698,9 @@ function media_crop_get_image($media_crop_instance) {
     'scale_width' => $scale_width,
     'mciid' => $media_crop_instance->mciid,
   );
+
+  var_dump($crop_object);
+  exit();
 
   $success = file_exists($derivative_uri) || media_crop_create_derivative($crop_object);
 
