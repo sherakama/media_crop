@@ -767,16 +767,10 @@ function media_crop_create_derivative($crop_object) {
     return FALSE;
   }
 
-  // var_dump(image_gd_get_info($image));
-  // var_dump('//////////////////////////////////////////////////');
-
   $image = _media_crop_apply_rotation($angle, $image);
   $image = _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
   $image = _media_crop_apply_image_style($style, $image);
   $image = _media_crop_apply_scale($scale_width, $scale_height, $image);
-
-  // var_dump("////////////////////////////////////////////////////");
-  // var_dump(image_gd_get_info($image));
 
    if ($return = image_gd_save($image, $destination)) {
 
@@ -785,17 +779,6 @@ function media_crop_create_derivative($crop_object) {
     $image->info = image_get_info($destination, $image->toolkit);
 
   }
-
-  // var_dump("////////////////////////////////////////////////////");
-  // var_dump(image_gd_get_info($image));
-
-  exit('saved');
-
-
-
-
-
-
 
   if (!image_save($image, $destination)) {
 
@@ -850,28 +833,15 @@ function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $
     $image_width = $image->info['width'];
     $image_height = $image->info['height'];
 
-    // $effect = array(
-    //   'name' => 'image_crop',
-    //   'data' => array(
-    //     'width' => (int) _media_crop_scale($image_width, $image_height, $crop_width),
-    //     'height' => (int) _media_crop_scale($image_width, $image_height, $crop_height),
-    //     'anchor' =>
-    //         ((int) _media_crop_scale($image_width, $image_height, $crop_x_coordinate))
-    //           . '-' .
-    //         ((int) _media_crop_scale($image_width, $image_height, $crop_y_coordinate)),
-    //   ),
-    // ) + image_effect_definition_load('image_crop');
-
-
     $effect = array(
       'name' => 'image_crop',
       'data' => array(
-        'width' => (int) $crop_width,
-        'height' => (int) $crop_height,
+        'width' => (int) _media_crop_scale($image_width, $image_height, $crop_width),
+        'height' => (int) _media_crop_scale($image_width, $image_height, $crop_height),
         'anchor' =>
-            ((int) $crop_x_coordinate)
+            ((int) _media_crop_scale($image_width, $image_height, $crop_x_coordinate))
               . '-' .
-            ((int) $crop_y_coordinate),
+            ((int) _media_crop_scale($image_width, $image_height, $crop_y_coordinate)),
       ),
     ) + image_effect_definition_load('image_crop');
 
@@ -973,8 +943,8 @@ function _media_crop_get_path($mciid, $uri) {
  *   Scaled value.
  */
 function _media_crop_scale($image_width, $image_height, $val, $invert = FALSE) {
-  static $precision = 4096;
 
+  static $precision = 4096;
   $cache = &drupal_static(__FUNCTION__, array());
   $cache_index = "{$image_width}x{$image_height}";
 
@@ -983,10 +953,8 @@ function _media_crop_scale($image_width, $image_height, $val, $invert = FALSE) {
   }
 
   $ret = $invert ?
-    (function_exists('bcmul') ? bcmul($val, $cache[$cache_index], $precision) : $cache[$cache_index] * $val) :
-    (function_exists('bcdiv') ? bcdiv($val, $cache[$cache_index], $precision) : $cache[$cache_index] / $val);
-
-  var_dump($ret);
+    (function_exists('bcmul') ? bcmul($val, $cache[$cache_index], $precision) : (string) $cache[$cache_index] * $val) :
+    (function_exists('bcdiv') ? bcdiv($val, $cache[$cache_index], $precision) : (string) $val / $cache[$cache_index]);
 
   return $ret;
 }
