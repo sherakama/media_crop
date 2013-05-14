@@ -524,9 +524,6 @@ function media_crop_image_access($file, $account = NULL) {
  */
 function media_crop_create_instance($style_name, $file, $token) {
 
-var_dump('CREATE INSTANCE');
-exit();
-
   if (!drupal_valid_token($token, MEDIA_CROP_TOKEN_VALUE)) {
     watchdog('media_crop', 'Invalid token. ( %token )', array('%token' => $token));
     drupal_access_denied();
@@ -700,9 +697,6 @@ function media_crop_get_image($media_crop_instance) {
   );
 
   $success = file_exists($derivative_uri) || media_crop_create_derivative($crop_object);
-
-  var_dump($success);
-  exit('sucy');
 
   if (!empty($lock_acquired)) {
     lock_release($lock);
