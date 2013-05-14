@@ -699,10 +699,10 @@ function media_crop_get_image($media_crop_instance) {
     'mciid' => $media_crop_instance->mciid,
   );
 
-  var_dump($crop_object);
-  exit();
-
   $success = file_exists($derivative_uri) || media_crop_create_derivative($crop_object);
+
+  var_dump($success);
+  exit('sucy');
 
   if (!empty($lock_acquired)) {
     lock_release($lock);
