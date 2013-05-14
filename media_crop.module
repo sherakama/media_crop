@@ -676,7 +676,7 @@ function media_crop_get_image($media_crop_instance) {
   }
 
   $lock = drupal_hash_base64($file->uri . implode('/', array($angle, $crop_x_coordinate, $crop_y_coordinate, $crop_width, $crop_height)));
-  if (!file_exists($derivative_uri)) {
+  if (file_exists($derivative_uri) === FALSE) {
     $lock_acquired = lock_acquire($lock);
     if (!$lock_acquired) {
       drupal_add_http_header('Status', '503 Service Unavailable');
