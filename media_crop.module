@@ -773,8 +773,7 @@ function media_crop_create_derivative($crop_object) {
   _media_crop_apply_scale($scale_width, $scale_height, $image);
 
   if (!image_save($image, $destination)) {
-  var_dump($image);
-  exit('on deriv');
+
 
     if (file_exists($destination)) {
       watchdog('media_crop', 'Cached image file %destination already exists. There may be an issue with your rewrite configuration.', array('%destination' => $destination), WATCHDOG_ERROR);
@@ -782,8 +781,6 @@ function media_crop_create_derivative($crop_object) {
     return FALSE;
   }
 
-  var_dump($image);
-  exit('on deriv 2');
 
   return TRUE;
 }
