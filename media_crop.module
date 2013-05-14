@@ -767,6 +767,9 @@ function media_crop_create_derivative($crop_object) {
     return FALSE;
   }
 
+  var_dump(image_gd_get_info($image));
+  var_dump('//////////////////////////////////////////////// \n');
+
   _media_crop_apply_rotation($angle, $image);
   _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
   _media_crop_apply_image_style($style, $image);
@@ -774,8 +777,8 @@ function media_crop_create_derivative($crop_object) {
 
 // image_gd_crop($image, $crop_x_coordinate, $crop_y_coordinate, $crop_width, $crop_height);
 
+  var_dump("//////////////////////////////////////////////////// \n");
   var_dump(image_gd_get_info($image));
-  var_dump('//////////////////////////////////////////////// \n');
 
    if ($return = image_gd_save($image, $destination)) {
 
