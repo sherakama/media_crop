@@ -758,11 +758,6 @@ function media_crop_create_derivative($crop_object) {
   $destination = _media_crop_get_path($crop_object->mciid, $uri);
   $directory = drupal_dirname($destination);
 
-  var_dump($destination);
-  var_dump($directory);
-  exit('on deriv');
-
-
   if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
     watchdog('media_crop', 'Failed to create style directory: %directory', array('%directory' => $directory), WATCHDOG_ERROR);
     return FALSE;
@@ -771,6 +766,11 @@ function media_crop_create_derivative($crop_object) {
   if (!$image = image_load($uri)) {
     return FALSE;
   }
+
+
+  var_dump($uri);
+  var_dump($directory);
+  exit('on deriv');
 
   _media_crop_apply_rotation($angle, $image);
   _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
