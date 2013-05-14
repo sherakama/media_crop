@@ -974,13 +974,18 @@ function _media_crop_scale($image_width, $image_height, $val, $invert = FALSE) {
       350 / max($image_width, $image_height);
   }
 
-  return $invert ?
+  $ret = $invert ?
     (function_exists('bcmul') ?
       bcmul($val, $cache[$cache_index], $precision) :
       $cache[$cache_index] * $val) :
     (function_exists('bcdiv') ?
       bcdiv($val, $cache[$cache_index], $precision) :
       $cache[$cache_index] / $val);
+
+    var_dump($image_width, $image_height, $val, $invert);
+    var_dump($ret);
+
+  return $ret;
 }
 
 /**
