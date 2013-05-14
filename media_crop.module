@@ -1154,7 +1154,8 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
   $original = $element;
   $file = isset($original['#file']) ? $original['#file'] : $original['content']['file']['#file'];
 
-  if ($tag_info['view_mode'] !== 'media_crop' || $file->type !== 'image') {
+  if ($tag_info['view_mode'] !== 'media_crop'
+    || ($file->type !== 'image' && $file->type !== 'media')) {
     return;
   }
 
@@ -1177,10 +1178,13 @@ function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings)
 
   // If this is anything else.
   $path = _media_crop_get_path($mciid, $file->uri);
-  $image_info = image_get_info($path);
+  // $image_info = image_get_info($path);
 
   $file->uri = $path;
-  $file->image_dimensions = array('height' => $tag_info['attributes']['height'], 'width' => $tag_info['attributes']['width']);
+  $file->image_dimensions = array(
+    'height' => $tag_info['attributes']['height'],
+    'width' => $tag_info['attributes']['width']
+  );
   unset($file->override);
 
   $element = array(
