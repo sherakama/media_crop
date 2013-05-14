@@ -982,6 +982,8 @@ function _media_crop_scale($image_width, $image_height, $val, $invert = FALSE) {
       bcdiv($val, $cache[$cache_index], $precision) :
       $cache[$cache_index] / $val);
 
+    phpinfo();
+    exit();
 
     var_dump(function_exists('bcmul'));
     var_dump(function_exists('bcdiv'));
