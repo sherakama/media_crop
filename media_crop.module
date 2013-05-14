@@ -774,7 +774,7 @@ function media_crop_create_derivative($crop_object) {
 
 
 
-   if ($return = image_toolkit_invoke('save', $image, array($destination))) {
+   if ($return = image_gd_save($image, $destination)) {
 
     var_dump($return);
 
