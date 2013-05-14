@@ -786,8 +786,8 @@ function media_crop_create_derivative($crop_object) {
 
   }
 
-  var_dump("////////////////////////////////////////////////////");
-  var_dump(image_gd_get_info($image));
+  // var_dump("////////////////////////////////////////////////////");
+  // var_dump(image_gd_get_info($image));
 
   exit('saved');
 
@@ -846,8 +846,6 @@ function _media_crop_apply_rotation($angle, $image) {
  */
 function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image) {
 
-var_dump($image);
-
   if ($crop_width && $crop_height) {
     $image_width = $image->info['width'];
     $image_height = $image->info['height'];
@@ -861,9 +859,9 @@ var_dump($image);
     ) + image_effect_definition_load('image_crop'));
   }
 
-  print "////////////////////////////////////////////////////////";
+  print "//////////////////////////////////////////////////////// <br />";
   var_dump($image);
-  print "////////////////////////////////////////////////////////";
+  print "////////////////////////////////////////////////////////  <br />";
 
   return $image;
 }
