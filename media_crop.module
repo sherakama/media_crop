@@ -767,16 +767,16 @@ function media_crop_create_derivative($crop_object) {
     return FALSE;
   }
 
-  var_dump(image_gd_get_info($image));
-  var_dump('//////////////////////////////////////////////////');
+  // var_dump(image_gd_get_info($image));
+  // var_dump('//////////////////////////////////////////////////');
 
   $image = _media_crop_apply_rotation($angle, $image);
   $image = _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
   $image = _media_crop_apply_image_style($style, $image);
   $image = _media_crop_apply_scale($scale_width, $scale_height, $image);
 
-  var_dump("////////////////////////////////////////////////////");
-  var_dump(image_gd_get_info($image));
+  // var_dump("////////////////////////////////////////////////////");
+  // var_dump(image_gd_get_info($image));
 
    if ($return = image_gd_save($image, $destination)) {
 
@@ -845,6 +845,9 @@ function _media_crop_apply_rotation($angle, $image) {
  *   Image object to modify.
  */
 function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image) {
+
+var_dump($image);
+
   if ($crop_width && $crop_height) {
     $image_width = $image->info['width'];
     $image_height = $image->info['height'];
