@@ -82,7 +82,6 @@ function media_crop_theme() {
       'variables' => array(
         'file' => NULL,
         'attributes' => array(),
-        'media_crop' => array(),
       ),
     ),
   );
@@ -1042,102 +1041,143 @@ function _media_crop_extract_rotation_and_crop(array $effects, $image_width, $im
  */
 function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings) {
 
-  if ($tag_info['view_mode'] === 'media_crop' && $tag_info['file']->type === 'image') {
+  // if ($tag_info['view_mode'] === 'media_crop' && $tag_info['file']->type === 'image') {
 
-    $mciid = NULL;
-    foreach ($tag_info['attributes']['class'] as $k => $class_name) {
-      if (substr($class_name, 0, 6) == "mciid-") {
-        $mciid = str_replace("mciid-", "", $class_name);
-      }
-    }
+  //   $mciid = NULL;
+  //   foreach ($tag_info['attributes']['class'] as $k => $class_name) {
+  //     if (substr($class_name, 0, 6) == "mciid-") {
+  //       $mciid = str_replace("mciid-", "", $class_name);
+  //     }
+  //   }
 
-    if (is_null($mciid)) {
-      return $element;
-    }
+  //   if (is_null($mciid)) {
+  //     return $element;
+  //   }
 
-    // Something changes here.
-    // @todo find out why.
-    if (!isset($element['#file']) && isset($element['content']['file']['#file'])) {
-      $element['#file'] = $element['content']['file']['#file'];
-    }
+  //   // Something changes here.
+  //   // @todo find out why.
+  //   if (!isset($element['#file']) && isset($element['content']['file']['#file'])) {
+  //     $element['#file'] = $element['content']['file']['#file'];
+  //   }
 
-    $file = $element['#file'];
+  //   $file = $element['#file'];
 
-    $path = _media_crop_get_path($mciid, $file->uri);
-    $file->uri = $path;
+  //   $path = _media_crop_get_path($mciid, $file->uri);
+  //   $file->uri = $path;
 
-    $image_info = image_get_info($path);
+  //   $image_info = image_get_info($path);
 
-    if ($image_info) {
-      $file->image_dimensions = array(
-        'width' => $image_info['width'],
-        'height' => $image_info['height'],
-      );
-    }
-    else {
-      // Fallback to NULL values.
-      $file->image_dimensions = array(
-        'width' => NULL,
-        'height' => NULL,
-      );
-    }
+  //   if ($image_info) {
+  //     $file->image_dimensions = array(
+  //       'width' => $image_info['width'],
+  //       'height' => $image_info['height'],
+  //     );
+  //   }
+  //   else {
+  //     // Fallback to NULL values.
+  //     $file->image_dimensions = array(
+  //       'width' => NULL,
+  //       'height' => NULL,
+  //     );
+  //   }
 
-    // These seem to be for the front end view.
-    $element['content']['file']['#path'] = $path;
-    $element['content']['file']['#width'] = $file->image_dimensions['width'];
-    $element['content']['file']['#height'] = $file->image_dimensions['height'];
+  //   // These seem to be for the front end view.
+  //   $element['content']['file']['#path'] = $path;
+  //   $element['content']['file']['#width'] = $file->image_dimensions['width'];
+  //   $element['content']['file']['#height'] = $file->image_dimensions['height'];
 
-    // These seem to be for the wysiwyg editor.
-    if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
-      $element['#path'] = $path;
-      $element['#width'] = $file->image_dimensions['width'];
-      $element['#height'] = $file->image_dimensions['height'];
-    }
-    // These seem to not differ.
-    $element['#file'] = $file;
+  //   // These seem to be for the wysiwyg editor.
+  //   if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
+  //     $element['#path'] = $path;
+  //     $element['#width'] = $file->image_dimensions['width'];
+  //     $element['#height'] = $file->image_dimensions['height'];
+  //   }
+  //   // These seem to not differ.
+  //   $element['#file'] = $file;
 
-    // If we have a parent wrapper tag we need to shift the style attributes
-    // from the entity to the parent wrapper tag to support things like
-    // floating left or right.
+  //   // If we have a parent wrapper tag we need to shift the style attributes
+  //   // from the entity to the parent wrapper tag to support things like
+  //   // floating left or right.
 
-    // WYSIWYG MODULE.
-    if (module_exists('wysiwyg') && !empty($element['content']['#type']) && $element['content']['#type'] == "container") {
-      if ($tag_info['attributes']) {
+  //   // WYSIWYG MODULE.
+  //   if (module_exists('wysiwyg') && !empty($element['content']['#type']) && $element['content']['#type'] == "container") {
+  //     if ($tag_info['attributes']) {
 
-        foreach ($tag_info['attributes'] as $k => $v) {
-          if (is_array($v)) {
-            continue;
-          }
-          if ($k == "align") {
-            $element['content']['#attributes']['class'][] = 'media-image-' . $v;
-          }
-          else {
-            $element['content']['#attributes'][$k] = $v;
-          }
-          unset($element['content']['file']['#attributes']);
-        }
+  //       foreach ($tag_info['attributes'] as $k => $v) {
+  //         if (is_array($v)) {
+  //           continue;
+  //         }
+  //         if ($k == "align") {
+  //           $element['content']['#attributes']['class'][] = 'media-image-' . $v;
+  //         }
+  //         else {
+  //           $element['content']['#attributes'][$k] = $v;
+  //         }
+  //         unset($element['content']['file']['#attributes']);
+  //       }
 
-      }
-    }
+  //     }
+  //   }
 
-    // CKEDITOR MODULE SUPPORT.
-    if (module_exists('ckeditor') && !empty($element['content']['file']['#attributes']['style']) && !isset($element['content']['#prefix'])) {
-      $element['content']['#prefix'] = "<div style=\"" . $element['content']['file']['#attributes']['style'] . "\" >";
-      $element['content']['#suffix'] = "</div>";
-      unset($element['content']['file']['#attributes']['style']);
-    }
+  //   // CKEDITOR MODULE SUPPORT.
+  //   if (module_exists('ckeditor') && !empty($element['content']['file']['#attributes']['style']) && !isset($element['content']['#prefix'])) {
+  //     $element['content']['#prefix'] = "<div style=\"" . $element['content']['file']['#attributes']['style'] . "\" >";
+  //     $element['content']['#suffix'] = "</div>";
+  //     unset($element['content']['file']['#attributes']['style']);
+  //   }
 
-    // If we are in the wyswiyg editor we need to add the additional fields
-    // to the markup as it only renders the image 'as is'.
+  //   // If we are in the wyswiyg editor we need to add the additional fields
+  //   // to the markup as it only renders the image 'as is'.
 
-    if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
-      $element["#theme"] = "media_crop_image";
-    }
+  //   if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
+  //     $element["#theme"] = "media_crop_image";
+  //   }
 
+  // }
+
+  // ***************
+  // All we need to do is return a proper render array as the element;
+  // ****************
+
+  if ($tag_info['view_mode'] !== 'media_crop' || $tag_info['file']->type !== 'image') {
+    return;
   }
 
+  $original = $element;
+  $element = array();
+  $mciid = $tag_info['mciid'];
+  $file = isset($original['#file']) ? $original['#file'] : $original['content']['file']['#file'];
+  $attributes = $tag_info['attributes'];
+
+  // No sense working on without an mciid.
+  if(!is_numeric($mciid)) {
+    return $element = $original;
+  }
+
+  $file_is_entity = module_exists('file_entity');
+
+  // If this is a wysiwyg render.
+  // if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
+  //   $element['markup'] = '<p>Im a wysiwyg and I dont care</p>';
+  //   return;
+  // }
+
+  // If this is anything else.
+  $path = _media_crop_get_path($mciid, $file->uri);
+  $image_info = image_get_info($path);
+
+  $file->uri = $path;
+  $file->image_dimensions = array('height' => $image_info['height'], 'width' => $image_info['width']);
+  unset($file->override);
+
+  $element = array(
+    '#theme' => 'media_crop_image',
+    '#file' => $file,
+    '#attributes' => $attributes,
+  );
 
 }
+
 
 /**
  * Wildcard loader, for loading a media crop instance object.
@@ -1161,7 +1201,7 @@ function theme_media_crop_image($variables) {
   if (!isset($file->content['#prefix'])) {
     $file->content['#prefix'] = "<div ";
 
-    foreach ($file->override['attributes'] as $k => $v) {
+    foreach ($variables['attributes'] as $k => $v) {
       $value = is_array($v) ? implode($v, " ") : $v;
       $file->content['#prefix'] .= $k . "=\"" . $value . "\" ";
     }
