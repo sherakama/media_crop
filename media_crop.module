@@ -857,6 +857,11 @@ function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $
       ),
     ) + image_effect_definition_load('image_crop'));
   }
+
+  print "<br/> ////////////////////////////////////////////////////////";
+  var_dump($image);
+  print "<br/> ////////////////////////////////////////////////////////";
+
   return $image;
 }
 
