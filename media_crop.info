@@ -6,7 +6,7 @@ dependencies[] = libraries
 dependencies[] = file_entity
 
 ; Information added by drupal.org packaging script on 2012-08-23
-version = "7.x-1.4+2-dev"
+version = "7.x-2.0"
 core = "7.x"
 project = "media_crop"
 datestamp = "1345682162"
