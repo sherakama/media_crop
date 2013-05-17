@@ -39,6 +39,13 @@
         img.attr('src', src.replace(mciid, data.mciid));
         img.attr('data-cke-saved-src', dataCkeSavedSrc.replace(mciid, data.mciid));
         img.attr('data-file_info', encodeURI(JSON.stringify(info)));
+
+        img.load(function(){
+          var me = $(this);
+          me.attr('height', me.height());
+          me.attr('width', me.width());
+        });
+
         img.addClass('mciid-' + data.mciid);
 
       },

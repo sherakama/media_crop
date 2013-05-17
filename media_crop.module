@@ -82,7 +82,6 @@ function media_crop_theme() {
       'variables' => array(
         'file' => NULL,
         'attributes' => array(),
-        'media_crop' => array(),
       ),
     ),
   );
@@ -111,7 +110,8 @@ function media_crop_media_format_form_prepare_alter(&$form, $form_state, $file) 
   }
 
   // Alter only if file is not remote and is of type image.
-  if (!_media_crop_is_file_remote($file) && $file->type === 'image') {
+  // if (!_media_crop_is_file_remote($file) && $file->type === 'image') {
+  if ($file->type === 'image') {
     $form['token'] = array(
       '#type' => 'hidden',
       '#value' => drupal_get_token(MEDIA_CROP_TOKEN_VALUE),
@@ -523,6 +523,7 @@ function media_crop_image_access($file, $account = NULL) {
  * cropped media instance.
  */
 function media_crop_create_instance($style_name, $file, $token) {
+
   if (!drupal_valid_token($token, MEDIA_CROP_TOKEN_VALUE)) {
     watchdog('media_crop', 'Invalid token. ( %token )', array('%token' => $token));
     drupal_access_denied();
@@ -593,6 +594,7 @@ function media_crop_create_instance($style_name, $file, $token) {
     'crop_h' => $crop_height,
     'crop_scale_w' => $scale_width,
     'crop_scale_h' => $scale_height,
+    'image_dimensions' => $file->image_dimensions,
   );
 
   drupal_json_output($data);
@@ -616,6 +618,7 @@ function media_crop_create_instance($style_name, $file, $token) {
  *         $o->crop_scale_h
  */
 function media_crop_get_image($media_crop_instance) {
+
   if (!$media_crop_instance) {
     drupal_goto(drupal_get_path('module', 'media_crop') . '/images/loading.gif');
   }
@@ -630,15 +633,16 @@ function media_crop_get_image($media_crop_instance) {
   $scale_width = (int) $media_crop_instance->crop_scale_w;
   $scale_height = (int) $media_crop_instance->crop_scale_h;
 
-  $args = func_get_args();
-  array_shift($args);
-  $req_uri = implode('/', $args);
-  $orig_uri = str_replace('://', '/', $file->uri);
-  if ($req_uri != $orig_uri) {
-    watchdog('media_crop', 'Request URI not equals to original URI.');
-    drupal_access_denied();
-  }
-  unset($args);
+  // $args = func_get_args();
+  // array_shift($args);
+  // $req_uri = implode('/', $args);
+  // $req_uri = $file->uri;
+  // $orig_uri = str_replace('://', '/', $file->uri);
+  // if ($req_uri != $orig_uri) {
+  //   watchdog('media_crop', 'Request URI not equals to original URI.');
+  //   drupal_access_denied();
+  // }
+  // unset($args);
 
   $style = image_style_load($style_name);
   if (!$style) {
@@ -669,7 +673,7 @@ function media_crop_get_image($media_crop_instance) {
   }
 
   $lock = drupal_hash_base64($file->uri . implode('/', array($angle, $crop_x_coordinate, $crop_y_coordinate, $crop_width, $crop_height)));
-  if (!file_exists($derivative_uri)) {
+  if (file_exists($derivative_uri) === FALSE) {
     $lock_acquired = lock_acquire($lock);
     if (!$lock_acquired) {
       drupal_add_http_header('Status', '503 Service Unavailable');
@@ -757,10 +761,10 @@ function media_crop_create_derivative($crop_object) {
     return FALSE;
   }
 
-  _media_crop_apply_rotation($angle, $image);
-  _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
-  _media_crop_apply_image_style($style, $image);
-  _media_crop_apply_scale($scale_width, $scale_height, $image);
+  $image = _media_crop_apply_rotation($angle, $image);
+  $image = _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image);
+  $image = _media_crop_apply_image_style($style, $image);
+  $image = _media_crop_apply_scale($scale_width, $scale_height, $image);
 
   if (!image_save($image, $destination)) {
     if (file_exists($destination)) {
@@ -768,6 +772,7 @@ function media_crop_create_derivative($crop_object) {
     }
     return FALSE;
   }
+
 
   return TRUE;
 }
@@ -790,6 +795,7 @@ function _media_crop_apply_rotation($angle, $image) {
       ),
     ) + image_effect_definition_load('image_rotate'));
   }
+  return $image;
 }
 
 /**
@@ -807,18 +813,28 @@ function _media_crop_apply_rotation($angle, $image) {
  *   Image object to modify.
  */
 function _media_crop_apply_crop($crop_width, $crop_height, $crop_x_coordinate, $crop_y_coordinate, $image) {
+
   if ($crop_width && $crop_height) {
     $image_width = $image->info['width'];
     $image_height = $image->info['height'];
-    image_effect_apply($image, array(
+
+    $effect = array(
       'name' => 'image_crop',
       'data' => array(
         'width' => (int) _media_crop_scale($image_width, $image_height, $crop_width),
         'height' => (int) _media_crop_scale($image_width, $image_height, $crop_height),
-        'anchor' => ((int) _media_crop_scale($image_width, $image_height, $crop_x_coordinate)) . '-' . ((int) _media_crop_scale($image_width, $image_height, $crop_y_coordinate)),
+        'anchor' =>
+            ((int) _media_crop_scale($image_width, $image_height, $crop_x_coordinate))
+              . '-' .
+            ((int) _media_crop_scale($image_width, $image_height, $crop_y_coordinate)),
       ),
-    ) + image_effect_definition_load('image_crop'));
+    ) + image_effect_definition_load('image_crop');
+
+    $victory = image_effect_apply($image, $effect);
   }
+
+
+  return $image;
 }
 
 /**
@@ -839,6 +855,7 @@ function _media_crop_apply_image_style($style, $image) {
       }
     }
   }
+  return $image;
 }
 
 /**
@@ -851,12 +868,13 @@ function _media_crop_apply_image_style($style, $image) {
  * @param object $image
  *   Image object to modify.
  */
-function _media_crop_apply_scale($scale_width, $scale_height, $image) {
+function _media_crop_apply_scale($scale_width, $scale_height, &$image) {
   if ($scale_width || $scale_height) {
     $scale_width = (int) $scale_width === 0 ? NULL : (int) $scale_width;
     $scale_height = (int) $scale_height === 0 ? NULL : (int) $scale_height;
     image_scale($image, $scale_width, $scale_height, TRUE);
   }
+  return $image;
 }
 
 /**
@@ -872,8 +890,18 @@ function _media_crop_apply_scale($scale_width, $scale_height, $image) {
  */
 function _media_crop_get_path($mciid, $uri) {
   $scheme = file_uri_scheme($uri);
+
   if ($scheme) {
-    $path = file_uri_target($uri);
+
+    // No need to change the path on remote files.
+    if (module_exists('remote_stream_wrapper') && ($scheme == "http" || $scheme == "https")) {
+      $remote_path = "public://media_crop/{$mciid}/public/" . file_uri_target($uri);
+      return $remote_path;
+    }
+    else {
+      $path = file_uri_target($uri);
+    }
+
   }
   else {
     $path = $uri;
@@ -900,23 +928,20 @@ function _media_crop_get_path($mciid, $uri) {
  *   Scaled value.
  */
 function _media_crop_scale($image_width, $image_height, $val, $invert = FALSE) {
+
   static $precision = 4096;
   $cache = &drupal_static(__FUNCTION__, array());
-
   $cache_index = "{$image_width}x{$image_height}";
+
   if (!isset($cache[$cache_index])) {
-    $cache[$cache_index] = function_exists('bcdiv') ?
-      bcdiv(350, max($image_width, $image_height), $precision) :
-      350 / max($image_width, $image_height);
+    $cache[$cache_index] = function_exists('bcdiv') ? bcdiv(350, max($image_width, $image_height), $precision) : 350 / max($image_width, $image_height);
   }
 
-  return $invert ?
-    (function_exists('bcmul') ?
-      bcmul($val, $cache[$cache_index], $precision) :
-      $cache[$cache_index] * $val) :
-    (function_exists('bcdiv') ?
-      bcdiv($val, $cache[$cache_index], $precision) :
-      $cache[$cache_index] / $val);
+  $ret = $invert ?
+    (function_exists('bcmul') ? bcmul($val, $cache[$cache_index], $precision) : (string) $cache[$cache_index] * $val) :
+    (function_exists('bcdiv') ? bcdiv($val, $cache[$cache_index], $precision) : (string) $val / $cache[$cache_index]);
+
+  return $ret;
 }
 
 /**
@@ -1042,102 +1067,148 @@ function _media_crop_extract_rotation_and_crop(array $effects, $image_width, $im
  */
 function media_crop_media_token_to_markup_alter(&$element, $tag_info, $settings) {
 
-  if ($tag_info['view_mode'] === 'media_crop' && $tag_info['file']->type === 'image') {
+  // if ($tag_info['view_mode'] === 'media_crop' && $tag_info['file']->type === 'image') {
 
-    $mciid = NULL;
-    foreach ($tag_info['attributes']['class'] as $k => $class_name) {
-      if (substr($class_name, 0, 6) == "mciid-") {
-        $mciid = str_replace("mciid-", "", $class_name);
-      }
-    }
+  //   $mciid = NULL;
+  //   foreach ($tag_info['attributes']['class'] as $k => $class_name) {
+  //     if (substr($class_name, 0, 6) == "mciid-") {
+  //       $mciid = str_replace("mciid-", "", $class_name);
+  //     }
+  //   }
 
-    if (is_null($mciid)) {
-      return $element;
-    }
+  //   if (is_null($mciid)) {
+  //     return $element;
+  //   }
 
-    // Something changes here.
-    // @todo find out why.
-    if (!isset($element['#file']) && isset($element['content']['file']['#file'])) {
-      $element['#file'] = $element['content']['file']['#file'];
-    }
+  //   // Something changes here.
+  //   // @todo find out why.
+  //   if (!isset($element['#file']) && isset($element['content']['file']['#file'])) {
+  //     $element['#file'] = $element['content']['file']['#file'];
+  //   }
 
-    $file = $element['#file'];
+  //   $file = $element['#file'];
 
-    $path = _media_crop_get_path($mciid, $file->uri);
-    $file->uri = $path;
+  //   $path = _media_crop_get_path($mciid, $file->uri);
+  //   $file->uri = $path;
 
-    $image_info = image_get_info($path);
+  //   $image_info = image_get_info($path);
 
-    if ($image_info) {
-      $file->image_dimensions = array(
-        'width' => $image_info['width'],
-        'height' => $image_info['height'],
-      );
-    }
-    else {
-      // Fallback to NULL values.
-      $file->image_dimensions = array(
-        'width' => NULL,
-        'height' => NULL,
-      );
-    }
+  //   if ($image_info) {
+  //     $file->image_dimensions = array(
+  //       'width' => $image_info['width'],
+  //       'height' => $image_info['height'],
+  //     );
+  //   }
+  //   else {
+  //     // Fallback to NULL values.
+  //     $file->image_dimensions = array(
+  //       'width' => NULL,
+  //       'height' => NULL,
+  //     );
+  //   }
 
-    // These seem to be for the front end view.
-    $element['content']['file']['#path'] = $path;
-    $element['content']['file']['#width'] = $file->image_dimensions['width'];
-    $element['content']['file']['#height'] = $file->image_dimensions['height'];
+  //   // These seem to be for the front end view.
+  //   $element['content']['file']['#path'] = $path;
+  //   $element['content']['file']['#width'] = $file->image_dimensions['width'];
+  //   $element['content']['file']['#height'] = $file->image_dimensions['height'];
 
-    // These seem to be for the wysiwyg editor.
-    if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
-      $element['#path'] = $path;
-      $element['#width'] = $file->image_dimensions['width'];
-      $element['#height'] = $file->image_dimensions['height'];
-    }
-    // These seem to not differ.
-    $element['#file'] = $file;
+  //   // These seem to be for the wysiwyg editor.
+  //   if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
+  //     $element['#path'] = $path;
+  //     $element['#width'] = $file->image_dimensions['width'];
+  //     $element['#height'] = $file->image_dimensions['height'];
+  //   }
+  //   // These seem to not differ.
+  //   $element['#file'] = $file;
 
-    // If we have a parent wrapper tag we need to shift the style attributes
-    // from the entity to the parent wrapper tag to support things like
-    // floating left or right.
+  //   // If we have a parent wrapper tag we need to shift the style attributes
+  //   // from the entity to the parent wrapper tag to support things like
+  //   // floating left or right.
 
-    // WYSIWYG MODULE.
-    if (module_exists('wysiwyg') && !empty($element['content']['#type']) && $element['content']['#type'] == "container") {
-      if ($tag_info['attributes']) {
+  //   // WYSIWYG MODULE.
+  //   if (module_exists('wysiwyg') && !empty($element['content']['#type']) && $element['content']['#type'] == "container") {
+  //     if ($tag_info['attributes']) {
 
-        foreach ($tag_info['attributes'] as $k => $v) {
-          if (is_array($v)) {
-            continue;
-          }
-          if ($k == "align") {
-            $element['content']['#attributes']['class'][] = 'media-image-' . $v;
-          }
-          else {
-            $element['content']['#attributes'][$k] = $v;
-          }
-          unset($element['content']['file']['#attributes']);
-        }
+  //       foreach ($tag_info['attributes'] as $k => $v) {
+  //         if (is_array($v)) {
+  //           continue;
+  //         }
+  //         if ($k == "align") {
+  //           $element['content']['#attributes']['class'][] = 'media-image-' . $v;
+  //         }
+  //         else {
+  //           $element['content']['#attributes'][$k] = $v;
+  //         }
+  //         unset($element['content']['file']['#attributes']);
+  //       }
 
-      }
-    }
+  //     }
+  //   }
 
-    // CKEDITOR MODULE SUPPORT.
-    if (module_exists('ckeditor') && !empty($element['content']['file']['#attributes']['style']) && !isset($element['content']['#prefix'])) {
-      $element['content']['#prefix'] = "<div style=\"" . $element['content']['file']['#attributes']['style'] . "\" >";
-      $element['content']['#suffix'] = "</div>";
-      unset($element['content']['file']['#attributes']['style']);
-    }
+  //   // CKEDITOR MODULE SUPPORT.
+  //   if (module_exists('ckeditor') && !empty($element['content']['file']['#attributes']['style']) && !isset($element['content']['#prefix'])) {
+  //     $element['content']['#prefix'] = "<div style=\"" . $element['content']['file']['#attributes']['style'] . "\" >";
+  //     $element['content']['#suffix'] = "</div>";
+  //     unset($element['content']['file']['#attributes']['style']);
+  //   }
 
-    // If we are in the wyswiyg editor we need to add the additional fields
-    // to the markup as it only renders the image 'as is'.
+  //   // If we are in the wyswiyg editor we need to add the additional fields
+  //   // to the markup as it only renders the image 'as is'.
 
-    if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
-      $element["#theme"] = "media_crop_image";
-    }
+  //   if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
+  //     $element["#theme"] = "media_crop_image";
+  //   }
 
+  // }
+
+  // ***************
+  // All we need to do is return a proper render array as the element;
+  // ****************
+
+  $original = $element;
+  $file = isset($original['#file']) ? $original['#file'] : $original['content']['file']['#file'];
+
+  if ($tag_info['view_mode'] !== 'media_crop'
+    || ($file->type !== 'image' && $file->type !== 'media')) {
+    return;
   }
 
+  $element = array();
+  $mciid = $tag_info['mciid'];
+  $attributes = $tag_info['attributes'];
+
+  // No sense working on without an mciid.
+  if(!is_numeric($mciid)) {
+    return $element = $original;
+  }
+
+  $file_is_entity = module_exists('file_entity');
+
+  // If this is a wysiwyg render.
+  // if (isset($settings['wysiwyg']) && $settings['wysiwyg']) {
+  //   $element['markup'] = '<p>Im a wysiwyg and I dont care</p>';
+  //   return;
+  // }
+
+  // If this is anything else.
+  $path = _media_crop_get_path($mciid, $file->uri);
+  // $image_info = image_get_info($path);
+
+  $file->uri = $path;
+  $file->image_dimensions = array(
+    'height' => $tag_info['attributes']['height'],
+    'width' => $tag_info['attributes']['width']
+  );
+  unset($file->override);
+
+  $element = array(
+    '#theme' => 'media_crop_image',
+    '#file' => $file,
+    '#attributes' => $attributes,
+  );
 
 }
+
 
 /**
  * Wildcard loader, for loading a media crop instance object.
@@ -1161,7 +1232,7 @@ function theme_media_crop_image($variables) {
   if (!isset($file->content['#prefix'])) {
     $file->content['#prefix'] = "<div ";
 
-    foreach ($file->override['attributes'] as $k => $v) {
+    foreach ($variables['attributes'] as $k => $v) {
       $value = is_array($v) ? implode($v, " ") : $v;
       $file->content['#prefix'] .= $k . "=\"" . $value . "\" ";
     }
